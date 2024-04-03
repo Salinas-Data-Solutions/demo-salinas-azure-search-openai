@@ -1,0 +1,42 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+schedules:
+- cron: '0 0 * * *'
+  branches:
+    include:
+    - main
+# trigger:
+#   - azure-pipelines
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- checkout: self
+  persistCredentials: true
+
+- script: |
+          
+          find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -r {} +
+          git clone --depth 1 https://github.com/Azure-Samples/azure-search-openai-demo.git
+
+          cd azure-search-openai-demo/
+          LAST_COMMIT_HASH=$(git rev-parse HEAD)
+          LAST_COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+          rm -rf .git
+
+          cd ../
+          echo $LAST_COMMIT_HASH 
+          echo $LAST_COMMIT_MESSAGE
+          ls azure-search-openai-demo/
+          mv azure-search-openai-demo/* .
+
+          git checkout -b azure-demo
+          git config --global user.email "you@example.com"
+          git config --global user.name "Test Name"
+          git add .
+          git commit -m"$LAST_COMMIT_MESSAGE"
+          git push origin azure-demo -f
+  displayName: 'Clone Openai Demo from Microsoft Repo'
